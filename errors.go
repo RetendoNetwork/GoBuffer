@@ -3,6 +3,6 @@ package gobuffer
 import "errors"
 
 var (
-	BufferOverwriteError  = errors.New("buffer overwrite error")
-	BufferUnderwriteError = errors.New("buffer underwrite error")
+	ErrBufferOverwrite  = errors.New("buffer overwrite error")
+	ErrBufferUnderwrite = errors.New("buffer underwrite error")
 )

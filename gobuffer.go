@@ -69,9 +69,9 @@ func (b *GoBuffer) ReadBits(out *uint64, off, n int64) error {
 
 func (b *GoBuffer) ClearBit(offset int64) {
 	if offset >= b.cap || offset < 0 {
-		err := BufferUnderwriteError
+		err := ErrBufferUnderwrite
 		if offset >= b.cap {
-			err = BufferOverwriteError
+			err = ErrBufferOverwrite
 		}
 		panic(err)
 	}
