@@ -1,6 +1,7 @@
 package gobuffer
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -95,4 +96,61 @@ func (b *GoBuffer) Grow(size int64) {
 
 	b.buf = tmp
 	b.Refresh()
+}
+
+var (
+	BufferOverwriteError  = errors.New("buffer overwrite error")
+	BufferUnderwriteError = errors.New("buffer underwrite error")
+)
+
+func (b *GoBuffer) ClearBit(offset int64) {
+	if offset >= b.cap || offset < 0 {
+		err := BufferUnderwriteError
+		if offset >= b.cap {
+			err = BufferOverwriteError
+		}
+		panic(err)
+	}
+
+	byteIndex := offset / 8
+	bitIndex := int(7 - (offset % 8))
+	mask := byte(1 << uint(bitIndex))
+	b.buf[byteIndex] &= ^mask
+
+	b.Refresh()
+}
+
+func (b *GoBuffer) ClearBitNext() {
+	b.ClearBit(b.boff)
+
+	b.SeekBit(1, true)
+}
+
+func (b *GoBuffer) SeekBit(offset int64, relative bool) {
+	switch relative {
+	case true:
+		b.boff = b.boff + offset
+	default:
+		b.boff = offset
+	}
+}
+
+func (b *GoBuffer) Bytes() []byte {
+	return b.buf
+}
+
+func (b *GoBuffer) ByteCapacity() int64 {
+	return b.cap
+}
+
+func (b *GoBuffer) BitCapacity() int64 {
+	return b.bcap
+}
+
+func (b *GoBuffer) ByteOffset() int64 {
+	return b.off
+}
+
+func (b *GoBuffer) BitOffset() int64 {
+	return b.boff
 }
