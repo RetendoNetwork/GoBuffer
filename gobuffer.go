@@ -1,7 +1,6 @@
 package gobuffer
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -39,17 +38,12 @@ func NewGoBuffer(slices ...[]byte) *GoBuffer {
 	return buf
 }
 
-var (
-	BufferOverwriteError  = errors.New("Buffer overwrite error")
-	BufferUnderwriteError = errors.New("Buffer underwrite error")
-)
-
 func (b *GoBuffer) ReadBit(out *byte, offset int64) error {
 	byteIndex := offset / 8
 	bitIndex := 7 - (offset % 8)
 
 	if byteIndex >= int64(len(b.buf)) {
-		return fmt.Errorf("Out of bounds")
+		return fmt.Errorf("out of bounds")
 	}
 
 	*out = (b.buf[byteIndex] >> uint(bitIndex)) & 1
@@ -107,7 +101,7 @@ func (b *GoBuffer) SeekBit(offset int64, relative bool) {
 
 func (b *GoBuffer) FlipBit(off int64) {
 	if off < 0 || off >= b.bcap {
-		panic(fmt.Errorf("Invalid offset %d, out of bounds", off))
+		panic(fmt.Errorf("invalid offset %d, out of bounds", off))
 	}
 
 	byteIndex := off / 8
@@ -135,7 +129,7 @@ func (b *GoBuffer) Refresh() {
 // Original code of Grow from https://github.com/habak67/gobuffer/blob/master/buffer.go#L151
 func (b *GoBuffer) Grow(size int64) {
 	if size < 0 {
-		panic(fmt.Errorf("Invalid size: cannot be negative"))
+		panic(fmt.Errorf("invalid size: cannot be negative"))
 	}
 
 	if size <= b.bcap {

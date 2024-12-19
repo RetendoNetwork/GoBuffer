@@ -1,2 +1,2 @@
 # GoBuffer
-GoBuffer Bits/Bytes Library written in go. 
+GoBuffer Bits/Bytes Library written in Go. 
