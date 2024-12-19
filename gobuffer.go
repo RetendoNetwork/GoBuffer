@@ -110,6 +110,46 @@ func (b *GoBuffer) FlipBit(off int64) {
 	b.buf[byteIndex] ^= 1 << uint(bitIndex)
 }
 
+func (b *GoBuffer) SeekByte(offset int64, relative bool) {
+	if relative {
+		b.off += offset
+	} else {
+		b.off = offset
+	}
+}
+
+func (b *GoBuffer) WriteBytes(offset int64, data []byte) {
+	if offset < 0 {
+		panic(ErrBufferUnderwrite)
+	}
+
+	if offset+int64(len(data)) > b.cap {
+		panic(ErrBufferOverwrite)
+	}
+
+	copy(b.buf[offset:], data)
+}
+
+func (b *GoBuffer) WriteBytesNext(data []byte) {
+	b.WriteBytes(b.off, data)
+	b.SeekByte(int64(len(data)), true)
+}
+
+// Called WriteByteAt and not WriteByte because you can have an error with "signature".
+// TODO: Fix signature error from WriteByte name.
+func (b *GoBuffer) WriteByteAt(offset int64, data byte) {
+	b.WriteBytes(offset, []byte{data})
+}
+
+func (b *GoBuffer) WriteByteNext(data byte) {
+	b.WriteBytes(b.off, []byte{data})
+	b.SeekByte(1, true)
+}
+
+func (b *GoBuffer) AlignBit() {
+	b.boff = b.off << 3
+}
+
 func divMod(a, b int64) (int64, int64) {
 	return a / b, a % b
 }
