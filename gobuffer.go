@@ -105,6 +105,17 @@ func (b *GoBuffer) SeekBit(offset int64, relative bool) {
 	}
 }
 
+func (b *GoBuffer) FlipBit(off int64) {
+	if off < 0 || off >= b.bcap {
+		panic(fmt.Errorf("Invalid offset %d, out of bounds", off))
+	}
+
+	byteIndex := off / 8
+	bitIndex := 7 - (off % 8)
+
+	b.buf[byteIndex] ^= 1 << uint(bitIndex)
+}
+
 func divMod(a, b int64) (int64, int64) {
 	return a / b, a % b
 }
