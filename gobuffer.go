@@ -39,12 +39,17 @@ func NewGoBuffer(slices ...[]byte) *GoBuffer {
 	return buf
 }
 
+var (
+	BufferOverwriteError  = errors.New("Buffer overwrite error")
+	BufferUnderwriteError = errors.New("Buffer underwrite error")
+)
+
 func (b *GoBuffer) ReadBit(out *byte, offset int64) error {
 	byteIndex := offset / 8
 	bitIndex := 7 - (offset % 8)
 
 	if byteIndex >= int64(len(b.buf)) {
-		return fmt.Errorf("out of bounds")
+		return fmt.Errorf("Out of bounds")
 	}
 
 	*out = (b.buf[byteIndex] >> uint(bitIndex)) & 1
@@ -67,41 +72,6 @@ func (b *GoBuffer) ReadBits(out *uint64, off, n int64) error {
 	*out = result
 	return nil
 }
-
-func (b *GoBuffer) Refresh() {
-	b.bcap = int64(len(b.buf))
-
-	b.cap = b.bcap * 8
-}
-
-// Original code of Grow from https://github.com/habak67/gobuffer/blob/master/buffer.go#L151
-func (b *GoBuffer) Grow(size int64) {
-	if size < 0 {
-		panic(fmt.Errorf("Invalid size: cannot be negative"))
-	}
-
-	if size <= b.bcap {
-		b.buf = b.buf[0 : b.off+size]
-		b.Refresh()
-		return
-	}
-
-	newCapacity := b.bcap * 2
-	if newCapacity < size {
-		newCapacity = size
-	}
-
-	tmp := make([]byte, newCapacity)
-	copy(tmp, b.buf)
-
-	b.buf = tmp
-	b.Refresh()
-}
-
-var (
-	BufferOverwriteError  = errors.New("buffer overwrite error")
-	BufferUnderwriteError = errors.New("buffer underwrite error")
-)
 
 func (b *GoBuffer) ClearBit(offset int64) {
 	if offset >= b.cap || offset < 0 {
@@ -133,6 +103,46 @@ func (b *GoBuffer) SeekBit(offset int64, relative bool) {
 	default:
 		b.boff = offset
 	}
+}
+
+func divMod(a, b int64) (int64, int64) {
+	return a / b, a % b
+}
+
+func (b *GoBuffer) AlignByte() {
+	quotient, _ := divMod(b.boff, 8)
+
+	b.off = quotient
+}
+
+func (b *GoBuffer) Refresh() {
+	b.bcap = int64(len(b.buf))
+
+	b.cap = b.bcap * 8
+}
+
+// Original code of Grow from https://github.com/habak67/gobuffer/blob/master/buffer.go#L151
+func (b *GoBuffer) Grow(size int64) {
+	if size < 0 {
+		panic(fmt.Errorf("Invalid size: cannot be negative"))
+	}
+
+	if size <= b.bcap {
+		b.buf = b.buf[0 : b.off+size]
+		b.Refresh()
+		return
+	}
+
+	newCapacity := b.bcap * 2
+	if newCapacity < size {
+		newCapacity = size
+	}
+
+	tmp := make([]byte, newCapacity)
+	copy(tmp, b.buf)
+
+	b.buf = tmp
+	b.Refresh()
 }
 
 func (b *GoBuffer) Bytes() []byte {
