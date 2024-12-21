@@ -38,58 +38,6 @@ func NewGoBuffer(slices ...[]byte) *GoBuffer {
 	return buf
 }
 
-func (b *GoBuffer) ReadBit(out *byte, offset int64) error {
-	byteIndex := offset / 8
-	bitIndex := 7 - (offset % 8)
-
-	if byteIndex >= int64(len(b.buf)) {
-		return fmt.Errorf("out of bounds")
-	}
-
-	*out = (b.buf[byteIndex] >> uint(bitIndex)) & 1
-	return nil
-}
-
-func (b *GoBuffer) ReadBits(out *uint64, off, n int64) error {
-	var result uint64
-	var bout byte
-
-	for i := int64(0); i < n; i++ {
-		err := b.ReadBit(&bout, off+i)
-		if err != nil {
-			return err
-		}
-
-		result = (result << 1) | uint64(bout)
-	}
-
-	*out = result
-	return nil
-}
-
-func (b *GoBuffer) ClearBit(offset int64) {
-	if offset >= b.cap || offset < 0 {
-		err := ErrBufferUnderwrite
-		if offset >= b.cap {
-			err = ErrBufferOverwrite
-		}
-		panic(err)
-	}
-
-	byteIndex := offset / 8
-	bitIndex := int(7 - (offset % 8))
-	mask := byte(1 << uint(bitIndex))
-	b.buf[byteIndex] &= ^mask
-
-	b.Refresh()
-}
-
-func (b *GoBuffer) ClearBitNext() {
-	b.ClearBit(b.boff)
-
-	b.SeekBit(1, true)
-}
-
 func (b *GoBuffer) SeekBit(offset int64, relative bool) {
 	switch relative {
 	case true:
@@ -116,34 +64,6 @@ func (b *GoBuffer) SeekByte(offset int64, relative bool) {
 	} else {
 		b.off = offset
 	}
-}
-
-func (b *GoBuffer) WriteBytes(offset int64, data []byte) {
-	if offset < 0 {
-		panic(ErrBufferUnderwrite)
-	}
-
-	if offset+int64(len(data)) > b.cap {
-		panic(ErrBufferOverwrite)
-	}
-
-	copy(b.buf[offset:], data)
-}
-
-func (b *GoBuffer) WriteBytesNext(data []byte) {
-	b.WriteBytes(b.off, data)
-	b.SeekByte(int64(len(data)), true)
-}
-
-// Called WriteByteAt and not WriteByte because you can have an error with "signature".
-// TODO: Fix signature error from WriteByte name.
-func (b *GoBuffer) WriteByteAt(offset int64, data byte) {
-	b.WriteBytes(offset, []byte{data})
-}
-
-func (b *GoBuffer) WriteByteNext(data byte) {
-	b.WriteBytes(b.off, []byte{data})
-	b.SeekByte(1, true)
 }
 
 func (b *GoBuffer) AlignBit() {
