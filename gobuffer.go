@@ -47,13 +47,13 @@ func (b *GoBuffer) SeekBit(offset int64, relative bool) {
 	}
 }
 
-func (b *GoBuffer) FlipBit(off int64) {
-	if off < 0 || off >= b.bcap {
-		panic(fmt.Errorf("invalid offset %d, out of bounds", off))
+func (b *GoBuffer) FlipBit(offset int64) {
+	if offset < 0 || offset >= b.bcap {
+		panic(fmt.Errorf("invalid offset %d, out of bounds", offset))
 	}
 
-	byteIndex := off / 8
-	bitIndex := 7 - (off % 8)
+	byteIndex := offset / 8
+	bitIndex := 7 - (offset % 8)
 
 	b.buf[byteIndex] ^= 1 << uint(bitIndex)
 }
@@ -64,6 +64,34 @@ func (b *GoBuffer) SeekByte(offset int64, relative bool) {
 	} else {
 		b.off = offset
 	}
+}
+
+func (b *GoBuffer) ClearBit(offset int64) {
+	if offset >= b.cap || offset < 0 {
+		err := ErrBufferUnderwrite
+		if offset >= b.cap {
+			err = ErrBufferOverwrite
+		}
+		panic(err)
+	}
+
+	byteIndex := offset / 8
+	bitIndex := int(7 - (offset % 8))
+	mask := byte(1 << uint(bitIndex))
+	b.buf[byteIndex] &= ^mask
+
+	b.Refresh()
+}
+
+// Use ClearBitAt() and not ClearBit() because you can maybe have an error with "signature".
+func (b *GoBuffer) ClearBitAt(offset int64) {
+	b.ClearBit(offset)
+}
+
+func (b *GoBuffer) ClearBitNext() {
+	b.ClearBit(b.boff)
+
+	b.SeekBit(1, true)
 }
 
 func (b *GoBuffer) AlignBit() {

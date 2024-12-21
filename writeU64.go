@@ -1,13 +1,13 @@
 package gobuffer
 
 // WriteU64LE writes a slice of uint64 to the buffer at the specified offset in little-endian order.
-func (b *GoBuffer) WriteU64LE(off int64, data []uint64) {
-	if off < 0 || (off+int64(len(data))*8) > b.cap {
+func (b *GoBuffer) WriteU64LE(offset int64, data []uint64) {
+	if offset < 0 || (offset+int64(len(data))*8) > b.cap {
 		panic(ErrBufferOverwrite)
 	}
 
 	for i, val := range data {
-		start := off + int64(i*8)
+		start := offset + int64(i*8)
 		b.buf[start] = byte(val)
 		b.buf[start+1] = byte(val >> 8)
 		b.buf[start+2] = byte(val >> 16)
@@ -26,13 +26,13 @@ func (b *GoBuffer) WriteU64LENext(data []uint64) {
 }
 
 // WriteU64BE writes a slice of uint64 to the buffer at the specified offset in big-endian order.
-func (b *GoBuffer) WriteU64BE(off int64, data []uint64) {
-	if off < 0 || (off+int64(len(data))*8) > b.cap {
+func (b *GoBuffer) WriteU64BE(offset int64, data []uint64) {
+	if offset < 0 || (offset+int64(len(data))*8) > b.cap {
 		panic(ErrBufferOverwrite)
 	}
 
 	for i, val := range data {
-		start := off + int64(i*8)
+		start := offset + int64(i*8)
 		b.buf[start] = byte(val >> 56)
 		b.buf[start+1] = byte(val >> 48)
 		b.buf[start+2] = byte(val >> 40)

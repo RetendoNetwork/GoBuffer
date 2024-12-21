@@ -5,13 +5,13 @@ import (
 	"math"
 )
 
-func (b *GoBuffer) WriteF64LE(off int64, data []float64) {
-	if off < 0 || (off+int64(len(data))*8) > b.cap {
+func (b *GoBuffer) WriteF64LE(offset int64, data []float64) {
+	if offset < 0 || (offset+int64(len(data))*8) > b.cap {
 		panic(ErrBufferOverflow)
 	}
 
 	for i, val := range data {
-		start := off + int64(i*8)
+		start := offset + int64(i*8)
 		binary.LittleEndian.PutUint64(b.buf[start:], math.Float64bits(val))
 	}
 }
@@ -21,13 +21,13 @@ func (b *GoBuffer) WriteF64LENext(data []float64) {
 	b.SeekByte(int64(len(data))*8, true)
 }
 
-func (b *GoBuffer) WriteF64BE(off int64, data []float64) {
-	if off < 0 || (off+int64(len(data))*8) > b.cap {
+func (b *GoBuffer) WriteF64BE(offset int64, data []float64) {
+	if offset < 0 || (offset+int64(len(data))*8) > b.cap {
 		panic(ErrBufferOverflow)
 	}
 
 	for i, val := range data {
-		start := off + int64(i*8)
+		start := offset + int64(i*8)
 		binary.BigEndian.PutUint64(b.buf[start:], math.Float64bits(val))
 	}
 }
