@@ -1,5 +1,10 @@
 # GoBuffer
-- GoBuffer Bits/Bytes Library written in Go. 
+- GoBuffer Bits/Bytes Library written in Go.
+
+## Install
+```
+go get github.com/RetendoNetwork/GoBuffer
+```
 
 ## Features
 - [x] Writes Functions
